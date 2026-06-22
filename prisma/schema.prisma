@@ -1,0 +1,67 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model Book {
+  id          String    @id @default(cuid())
+  isbn        String?   @unique
+  isbn13      String?   @unique
+  title       String
+  author      String?
+  publisher   String?
+  year        Int?
+  description String?
+  coverUrl    String?
+  pageCount   Int?
+  rating      Int?
+  status      String    @default("want_to_read")
+  locationId  String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  tags     BookTag[]
+  notes    Note[]
+}
+
+model Location {
+  id          String  @id @default(cuid())
+  name        String
+  room        String?
+  description String?
+  color       String  @default("#6366f1")
+  books       Book[]
+}
+
+model Tag {
+  id    String    @id @default(cuid())
+  name  String    @unique
+  color String    @default("#10b981")
+  books BookTag[]
+}
+
+model BookTag {
+  bookId String
+  tagId  String
+  book   Book   @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  tag    Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([bookId, tagId])
+}
+
+model Note {
+  id         String   @id @default(cuid())
+  bookId     String
+  content    String
+  type       String   @default("note")
+  pageNumber Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+}
