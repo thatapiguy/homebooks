@@ -14,7 +14,7 @@ export default async function EditBookPage({ params }: EditBookPageProps) {
   const [book, locations] = await Promise.all([
     prisma.book.findUnique({
       where: { id },
-      include: { location: true, tags: { include: { tag: true } }, notes: true },
+      include: { location: true, author: true, tags: { include: { tag: true } }, notes: true },
     }),
     prisma.location.findMany({ orderBy: { name: 'asc' } }),
   ])

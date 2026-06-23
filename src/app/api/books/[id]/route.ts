@@ -4,6 +4,7 @@ import { BookUpdateSchema } from '@/lib/validations'
 
 const bookInclude = {
   location: true,
+  author: true,
   tags: { include: { tag: true } },
   notes: { orderBy: { createdAt: 'desc' as const } },
   _count: { select: { notes: true } },

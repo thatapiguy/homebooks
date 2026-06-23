@@ -45,7 +45,7 @@ export function BookCard({ book }: BookCardProps) {
             {book.title}
           </h3>
           {book.author && (
-            <p className="line-clamp-1 text-xs text-muted-foreground">{book.author}</p>
+            <p className="line-clamp-1 text-xs text-muted-foreground">{book.author.name}</p>
           )}
 
           {book.rating && (

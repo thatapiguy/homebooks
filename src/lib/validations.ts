@@ -4,7 +4,7 @@ export const BookCreateSchema = z.object({
   isbn: z.string().optional().nullable(),
   isbn13: z.string().optional().nullable(),
   title: z.string().min(1, 'Title is required'),
-  author: z.string().optional().nullable(),
+  authorId: z.string().optional().nullable(),
   publisher: z.string().optional().nullable(),
   year: z.number().int().min(1000).max(2200).optional().nullable(),
   description: z.string().optional().nullable(),

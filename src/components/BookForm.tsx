@@ -12,6 +12,7 @@ import { Textarea } from './ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { StarRating } from './StarRating'
 import { TagPicker } from './TagPicker'
+import { AuthorPicker } from './AuthorPicker'
 import type { BookWithRelations, Location } from '@/types'
 
 const ISBNScanner = dynamic(() => import('./ISBNScanner').then((m) => ({ default: m.ISBNScanner })), {
@@ -28,7 +29,8 @@ type FormData = {
   isbn: string
   isbn13: string
   title: string
-  author: string
+  authorId: string | null
+  authorName: string
   publisher: string
   year: string
   description: string
@@ -52,7 +54,8 @@ export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
     isbn: book?.isbn ?? (initialIsbn?.length === 10 ? initialIsbn : ''),
     isbn13: book?.isbn13 ?? (initialIsbn?.length === 13 ? initialIsbn : ''),
     title: book?.title ?? '',
-    author: book?.author ?? '',
+    authorId: book?.authorId ?? null,
+    authorName: book?.author?.name ?? '',
     publisher: book?.publisher ?? '',
     year: book?.year?.toString() ?? '',
     description: book?.description ?? '',
@@ -88,7 +91,8 @@ export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
         isbn: data.isbn ?? (isbn.length === 10 ? isbn : prev.isbn),
         isbn13: data.isbn13 ?? (isbn.length === 13 ? isbn : prev.isbn13),
         title: data.title || prev.title,
-        author: data.author || prev.author,
+        authorId: null,
+        authorName: data.author || prev.authorName,
         publisher: data.publisher || prev.publisher,
         year: data.year?.toString() || prev.year,
         description: data.description || prev.description,
@@ -130,11 +134,26 @@ export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
     }
     setSaving(true)
     try {
+      let resolvedAuthorId = form.authorId
+
+      // If a name was typed but no author selected yet, find-or-create on submit
+      if (!resolvedAuthorId && form.authorName.trim()) {
+        const res = await fetch('/api/authors', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: form.authorName.trim() }),
+        })
+        if (res.ok) {
+          const author = await res.json()
+          resolvedAuthorId = author.id
+        }
+      }
+
       const payload = {
         isbn: form.isbn || null,
         isbn13: form.isbn13 || null,
         title: form.title,
-        author: form.author || null,
+        authorId: resolvedAuthorId || null,
         publisher: form.publisher || null,
         year: form.year ? parseInt(form.year, 10) : null,
         description: form.description || null,
@@ -218,8 +237,14 @@ export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
           </div>
 
           <div>
-            <Label htmlFor="author">Author</Label>
-            <Input id="author" value={form.author} onChange={set('author')} className="mt-1" />
+            <Label>Author</Label>
+            <div className="mt-1">
+              <AuthorPicker
+                authorId={form.authorId}
+                authorName={form.authorName}
+                onChange={(authorId, authorName) => setForm((p) => ({ ...p, authorId, authorName }))}
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

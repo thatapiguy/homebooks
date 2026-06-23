@@ -23,6 +23,11 @@ export * from './enums';
  */
 export type Book = Prisma.BookModel
 /**
+ * Model Author
+ * 
+ */
+export type Author = Prisma.AuthorModel
+/**
  * Model Location
  * 
  */
