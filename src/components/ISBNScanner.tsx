@@ -22,10 +22,19 @@ export function ISBNScanner({ onScan, onClose }: ISBNScannerProps) {
 
     async function startScanner() {
       try {
-        const { Html5Qrcode } = await import('html5-qrcode')
+        const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode')
         if (cancelled) return
 
-        const scanner = new Html5Qrcode(divId)
+        const scanner = new Html5Qrcode(divId, {
+          formatsToSupport: [
+            Html5QrcodeSupportedFormats.EAN_13,
+            Html5QrcodeSupportedFormats.EAN_8,
+            Html5QrcodeSupportedFormats.CODE_128,
+            Html5QrcodeSupportedFormats.UPC_A,
+            Html5QrcodeSupportedFormats.UPC_E,
+          ],
+          verbose: false,
+        })
         scannerRef.current = scanner
         setScanning(true)
 
