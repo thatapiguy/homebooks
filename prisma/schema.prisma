@@ -12,7 +12,6 @@ model Book {
   isbn        String?   @unique
   isbn13      String?   @unique
   title       String
-  author      String?
   publisher   String?
   year        Int?
   description String?
@@ -21,12 +20,20 @@ model Book {
   rating      Int?
   status      String    @default("want_to_read")
   locationId  String?
+  authorId    String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   location Location? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  author   Author?   @relation(fields: [authorId], references: [id], onDelete: SetNull)
   tags     BookTag[]
   notes    Note[]
+}
+
+model Author {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  books Book[]
 }
 
 model Location {

@@ -4,6 +4,7 @@ import { BookCreateSchema } from '@/lib/validations'
 
 const bookInclude = {
   location: true,
+  author: true,
   tags: { include: { tag: true } },
   _count: { select: { notes: true } },
 }
@@ -22,7 +23,7 @@ export async function GET(request: NextRequest) {
   if (q) {
     where.OR = [
       { title: { contains: q } },
-      { author: { contains: q } },
+      { author: { is: { name: { contains: q } } } },
       { isbn: { contains: q } },
       { isbn13: { contains: q } },
     ]
@@ -31,8 +32,13 @@ export async function GET(request: NextRequest) {
   if (locationId) where.locationId = locationId
   if (tagId) where.tags = { some: { tagId } }
 
-  const validSorts = ['title', 'author', 'year', 'rating', 'createdAt', 'updatedAt']
-  const orderBy = validSorts.includes(sort) ? { [sort]: order } : { createdAt: order }
+  const validSorts = ['title', 'year', 'rating', 'createdAt', 'updatedAt']
+  let orderBy: Record<string, unknown> = { createdAt: order }
+  if (validSorts.includes(sort)) {
+    orderBy = { [sort]: order }
+  } else if (sort === 'author') {
+    orderBy = { author: { name: order } }
+  }
 
   const books = await prisma.book.findMany({
     where,

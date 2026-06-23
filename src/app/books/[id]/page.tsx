@@ -19,6 +19,7 @@ export default async function BookDetailPage({ params }: BookDetailPageProps) {
     where: { id },
     include: {
       location: true,
+      author: true,
       tags: { include: { tag: true } },
       notes: { orderBy: { createdAt: 'desc' } },
     },
@@ -61,7 +62,7 @@ export default async function BookDetailPage({ params }: BookDetailPageProps) {
           <div>
             <h1 className="text-2xl font-bold leading-tight mb-1">{book.title}</h1>
             {book.author && (
-              <p className="text-muted-foreground">{book.author}</p>
+              <p className="text-muted-foreground">{book.author.name}</p>
             )}
           </div>
 

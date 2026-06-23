@@ -2,12 +2,13 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, ScanLine, MapPin, Tag, Plus } from 'lucide-react'
+import { BookOpen, ScanLine, MapPin, Tag, Plus, User } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { href: '/library', label: 'Library', icon: BookOpen },
   { href: '/scan', label: 'Scan', icon: ScanLine },
+  { href: '/authors', label: 'Authors', icon: User },
   { href: '/locations', label: 'Locations', icon: MapPin },
   { href: '/tags', label: 'Tags', icon: Tag },
 ]
@@ -69,7 +70,7 @@ export function AppNav() {
       </header>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t bg-card">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t bg-card pb-[env(safe-area-inset-bottom)]">
         {navItems.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}

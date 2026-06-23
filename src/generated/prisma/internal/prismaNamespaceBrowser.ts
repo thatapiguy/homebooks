@@ -52,6 +52,7 @@ export const AnyNull = runtime.AnyNull
 
 export const ModelName = {
   Book: 'Book',
+  Author: 'Author',
   Location: 'Location',
   Tag: 'Tag',
   BookTag: 'BookTag',
@@ -76,7 +77,6 @@ export const BookScalarFieldEnum = {
   isbn: 'isbn',
   isbn13: 'isbn13',
   title: 'title',
-  author: 'author',
   publisher: 'publisher',
   year: 'year',
   description: 'description',
@@ -85,11 +85,20 @@ export const BookScalarFieldEnum = {
   rating: 'rating',
   status: 'status',
   locationId: 'locationId',
+  authorId: 'authorId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
 
 export type BookScalarFieldEnum = (typeof BookScalarFieldEnum)[keyof typeof BookScalarFieldEnum]
+
+
+export const AuthorScalarFieldEnum = {
+  id: 'id',
+  name: 'name'
+} as const
+
+export type AuthorScalarFieldEnum = (typeof AuthorScalarFieldEnum)[keyof typeof AuthorScalarFieldEnum]
 
 
 export const LocationScalarFieldEnum = {

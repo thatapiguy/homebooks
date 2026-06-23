@@ -27,7 +27,7 @@ async function BooksSection({ searchParams }: LibraryPageProps) {
   if (q) {
     where.OR = [
       { title: { contains: q } },
-      { author: { contains: q } },
+      { author: { is: { name: { contains: q } } } },
       { isbn: { contains: q } },
       { isbn13: { contains: q } },
     ]
@@ -36,18 +36,24 @@ async function BooksSection({ searchParams }: LibraryPageProps) {
   if (locationId) where.locationId = locationId
   if (tagId) where.tags = { some: { tagId } }
 
-  const validSorts = ['title', 'author', 'year', 'rating', 'createdAt', 'updatedAt']
-  const sortKey = validSorts.includes(sort) ? sort : 'createdAt'
+  const validSorts = ['title', 'year', 'rating', 'createdAt', 'updatedAt']
   const orderDir = order === 'asc' ? 'asc' : 'desc'
+  let orderBy: Record<string, unknown> = { createdAt: orderDir }
+  if (validSorts.includes(sort)) {
+    orderBy = { [sort]: orderDir }
+  } else if (sort === 'author') {
+    orderBy = { author: { name: orderDir } }
+  }
 
   const books = await prisma.book.findMany({
     where,
     include: {
       location: true,
+      author: true,
       tags: { include: { tag: true } },
       _count: { select: { notes: true } },
     },
-    orderBy: { [sortKey]: orderDir },
+    orderBy,
   })
 
   return (
