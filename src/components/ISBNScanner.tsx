@@ -18,6 +18,7 @@ export function ISBNScanner({ onScan, onClose }: ISBNScannerProps) {
 
   useEffect(() => {
     let cancelled = false
+    stoppedRef.current = false
 
     async function startScanner() {
       try {
