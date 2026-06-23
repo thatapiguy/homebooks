@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { ScanLine, Loader2 } from 'lucide-react'
@@ -21,6 +21,7 @@ const ISBNScanner = dynamic(() => import('./ISBNScanner').then((m) => ({ default
 interface BookFormProps {
   book?: BookWithRelations
   locations: Location[]
+  initialIsbn?: string | null
 }
 
 type FormData = {
@@ -39,16 +40,17 @@ type FormData = {
   tagIds: string[]
 }
 
-export function BookForm({ book, locations }: BookFormProps) {
+export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
   const router = useRouter()
   const isEdit = !!book
+  const didAutoLookup = useRef(false)
 
   const [showScanner, setShowScanner] = useState(false)
   const [lookingUp, setLookingUp] = useState(false)
   const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<FormData>({
-    isbn: book?.isbn ?? '',
-    isbn13: book?.isbn13 ?? '',
+    isbn: book?.isbn ?? (initialIsbn?.length === 10 ? initialIsbn : ''),
+    isbn13: book?.isbn13 ?? (initialIsbn?.length === 13 ? initialIsbn : ''),
     title: book?.title ?? '',
     author: book?.author ?? '',
     publisher: book?.publisher ?? '',
@@ -71,14 +73,20 @@ export function BookForm({ book, locations }: BookFormProps) {
     try {
       const res = await fetch(`/api/lookup?isbn=${isbn}`)
       if (!res.ok) {
-        toast.error('Book not found in Open Library')
+        // Store the scanned ISBN even if Open Library doesn't have it
+        setForm((prev) => ({
+          ...prev,
+          isbn: isbn.length === 10 ? isbn : prev.isbn,
+          isbn13: isbn.length === 13 ? isbn : prev.isbn13,
+        }))
+        toast.info('Book not found in Open Library — enter details manually')
         return
       }
       const data = await res.json()
       setForm((prev) => ({
         ...prev,
-        isbn: data.isbn ?? prev.isbn,
-        isbn13: data.isbn13 ?? prev.isbn13,
+        isbn: data.isbn ?? (isbn.length === 10 ? isbn : prev.isbn),
+        isbn13: data.isbn13 ?? (isbn.length === 13 ? isbn : prev.isbn13),
         title: data.title || prev.title,
         author: data.author || prev.author,
         publisher: data.publisher || prev.publisher,
@@ -87,7 +95,7 @@ export function BookForm({ book, locations }: BookFormProps) {
         coverUrl: data.coverUrl || prev.coverUrl,
         pageCount: data.pageCount?.toString() || prev.pageCount,
       }))
-      toast.success('Book details loaded from Open Library')
+      toast.success('Book details loaded — review and save')
     } catch {
       toast.error('Failed to look up book')
     } finally {
@@ -95,10 +103,23 @@ export function BookForm({ book, locations }: BookFormProps) {
     }
   }
 
+  useEffect(() => {
+    if (initialIsbn && !isEdit && !didAutoLookup.current) {
+      didAutoLookup.current = true
+      lookupISBN(initialIsbn)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
   const handleScan = useCallback((isbn: string) => {
     setShowScanner(false)
-    setForm((prev) => ({ ...prev, isbn: isbn.length === 10 ? isbn : prev.isbn, isbn13: isbn.length === 13 ? isbn : prev.isbn13 }))
+    setForm((prev) => ({
+      ...prev,
+      isbn: isbn.length === 10 ? isbn : prev.isbn,
+      isbn13: isbn.length === 13 ? isbn : prev.isbn13,
+    }))
     lookupISBN(isbn)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {

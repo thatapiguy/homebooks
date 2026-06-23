@@ -3,7 +3,12 @@ import Link from 'next/link'
 import { prisma } from '@/lib/prisma'
 import { BookForm } from '@/components/BookForm'
 
-export default async function NewBookPage() {
+interface NewBookPageProps {
+  searchParams: Promise<{ isbn?: string }>
+}
+
+export default async function NewBookPage({ searchParams }: NewBookPageProps) {
+  const { isbn } = await searchParams
   const locations = await prisma.location.findMany({ orderBy: { name: 'asc' } })
 
   return (
@@ -15,7 +20,7 @@ export default async function NewBookPage() {
 
       <h1 className="text-2xl font-bold mb-6">Add Book</h1>
 
-      <BookForm locations={locations} />
+      <BookForm locations={locations} initialIsbn={isbn ?? null} />
     </div>
   )
 }
