@@ -13,6 +13,7 @@ export function ISBNScanner({ onScan, onClose }: ISBNScannerProps) {
   const [error, setError] = useState<string | null>(null)
   const [scanning, setScanning] = useState(false)
   const scannerRef = useRef<{ stop: () => Promise<void> } | null>(null)
+  const stoppedRef = useRef(false)
   const divId = 'isbn-scanner-region'
 
   useEffect(() => {
@@ -35,6 +36,8 @@ export function ISBNScanner({ onScan, onClose }: ISBNScannerProps) {
             aspectRatio: 1.7,
           },
           (decodedText) => {
+            if (stoppedRef.current) return
+            stoppedRef.current = true
             scanner.stop().catch(() => {})
             onScan(decodedText)
           },
@@ -55,7 +58,10 @@ export function ISBNScanner({ onScan, onClose }: ISBNScannerProps) {
 
     return () => {
       cancelled = true
-      scannerRef.current?.stop().catch(() => {})
+      if (!stoppedRef.current) {
+        stoppedRef.current = true
+        scannerRef.current?.stop().catch(() => {})
+      }
     }
   }, [onScan])
 
