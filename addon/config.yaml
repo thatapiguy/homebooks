@@ -1,0 +1,21 @@
+name: "HomeBooks"
+description: "Self-hosted home book library with ISBN barcode scanning"
+version: "1.0.0"
+slug: "homebooks"
+init: false
+arch:
+  - aarch64
+  - amd64
+  - armhf
+  - armv7
+startup: application
+boot: auto
+ports:
+  3000/tcp: 3000
+ports_description:
+  3000/tcp: "Web UI"
+map:
+  - config:rw
+options: {}
+schema: {}
+image: "ghcr.io/thatapiguy/homebooks:{version}"
