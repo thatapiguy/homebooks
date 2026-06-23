@@ -11,50 +11,48 @@ interface ISBNScannerProps {
 
 export function ISBNScanner({ onScan, onClose }: ISBNScannerProps) {
   const [error, setError] = useState<string | null>(null)
-  const [scanning, setScanning] = useState(false)
-  const scannerRef = useRef<{ stop: () => Promise<void> } | null>(null)
-  const stoppedRef = useRef(false)
-  const divId = 'isbn-scanner-region'
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const controlsRef = useRef<{ stop: () => void } | null>(null)
+  const scannedRef = useRef(false)
 
   useEffect(() => {
-    let cancelled = false
-    stoppedRef.current = false
+    let active = true
+    scannedRef.current = false
 
     async function startScanner() {
       try {
-        const { Html5Qrcode, Html5QrcodeSupportedFormats } = await import('html5-qrcode')
-        if (cancelled) return
+        const { BrowserMultiFormatReader } = await import('@zxing/browser')
+        const { BarcodeFormat, DecodeHintType } = await import('@zxing/library')
 
-        const scanner = new Html5Qrcode(divId, {
-          formatsToSupport: [
-            Html5QrcodeSupportedFormats.EAN_13,
-            Html5QrcodeSupportedFormats.EAN_8,
-            Html5QrcodeSupportedFormats.CODE_128,
-            Html5QrcodeSupportedFormats.UPC_A,
-            Html5QrcodeSupportedFormats.UPC_E,
-          ],
-          verbose: false,
-        })
-        scannerRef.current = scanner
-        setScanning(true)
+        if (!active || !videoRef.current) return
 
-        await scanner.start(
-          { facingMode: 'environment' },
-          {
-            fps: 10,
-            qrbox: { width: 280, height: 100 },
-            aspectRatio: 1.7,
-          },
-          (decodedText) => {
-            if (stoppedRef.current) return
-            stoppedRef.current = true
-            scanner.stop().catch(() => {})
-            onScan(decodedText)
-          },
-          undefined
+        const hints = new Map()
+        hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+          BarcodeFormat.EAN_13,
+          BarcodeFormat.EAN_8,
+          BarcodeFormat.CODE_128,
+          BarcodeFormat.UPC_A,
+          BarcodeFormat.UPC_E,
+        ])
+        hints.set(DecodeHintType.TRY_HARDER, true)
+
+        const reader = new BrowserMultiFormatReader(hints)
+
+        const controls = await reader.decodeFromConstraints(
+          { video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } } },
+          videoRef.current,
+          (result, _err, frameControls) => {
+            if (result && !scannedRef.current) {
+              scannedRef.current = true
+              frameControls.stop()
+              onScan(result.getText())
+            }
+            // _err is just "no barcode found this frame" — not a real error
+          }
         )
+        controlsRef.current = controls
       } catch (err) {
-        if (!cancelled) {
+        if (active) {
           setError(
             err instanceof Error
               ? err.message
@@ -67,11 +65,8 @@ export function ISBNScanner({ onScan, onClose }: ISBNScannerProps) {
     startScanner()
 
     return () => {
-      cancelled = true
-      if (!stoppedRef.current) {
-        stoppedRef.current = true
-        scannerRef.current?.stop().catch(() => {})
-      }
+      active = false
+      controlsRef.current?.stop()
     }
   }, [onScan])
 
@@ -95,15 +90,21 @@ export function ISBNScanner({ onScan, onClose }: ISBNScannerProps) {
           </div>
         ) : (
           <>
-            <div
-              id={divId}
-              className="w-full max-w-sm rounded-lg overflow-hidden"
-            />
-            {scanning && (
-              <p className="mt-6 text-sm text-white/70 text-center">
-                Point the camera at the barcode on the back of the book
-              </p>
-            )}
+            <div className="relative w-full max-w-sm rounded-lg overflow-hidden bg-gray-900">
+              <video
+                ref={videoRef}
+                className="w-full"
+                autoPlay
+                muted
+                playsInline
+              />
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="w-72 h-24 border-2 border-white/60 rounded" />
+              </div>
+            </div>
+            <p className="mt-6 text-sm text-white/70 text-center">
+              Point the camera at the barcode on the back of the book
+            </p>
           </>
         )}
       </div>
