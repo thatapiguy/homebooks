@@ -27,7 +27,7 @@ jobs:
 
       - name: Get version from config.yaml
         id: ver
-        run: echo "version=$(grep '^version:' addon/config.yaml | awk '{print $2}' | tr -d '\"')" >> $GITHUB_OUTPUT
+        run: echo "version=$(grep '^version:' homebooks/config.yaml | awk '{print $2}' | tr -d '\"')" >> $GITHUB_OUTPUT
 
       - uses: docker/build-push-action@v5
         with:

@@ -2,6 +2,7 @@ name: "HomeBooks"
 description: "Self-hosted home book library with ISBN barcode scanning"
 version: "1.0.0"
 slug: "homebooks"
+url: "https://github.com/thatapiguy/homebooks"
 init: false
 arch:
   - aarch64
