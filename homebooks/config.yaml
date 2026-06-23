@@ -17,4 +17,4 @@ map:
   - config:rw
 options: {}
 schema: {}
-image: "ghcr.io/thatapiguy/homebooks:{version}"
+image: "ghcr.io/thatapiguy/homebooks"
