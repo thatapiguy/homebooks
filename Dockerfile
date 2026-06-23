@@ -5,7 +5,7 @@ RUN apk add --no-cache python3 make g++
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci --ignore-scripts
+RUN npm ci --ignore-scripts && npm rebuild better-sqlite3
 
 COPY . .
 RUN npx prisma generate && npx next build
@@ -19,7 +19,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 COPY package*.json ./
-RUN npm ci --ignore-scripts --omit=dev
+RUN npm ci --ignore-scripts --omit=dev && npm rebuild better-sqlite3
 
 COPY --from=builder /app/.next ./.next
 COPY --from=builder /app/prisma ./prisma
