@@ -2,6 +2,7 @@
 const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['better-sqlite3', '@prisma/adapter-better-sqlite3'],
+    staleTimes: { dynamic: 0 },
   },
   images: {
     remotePatterns: [

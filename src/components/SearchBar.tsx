@@ -35,9 +35,10 @@ export function SearchBar({ locations, tags }: SearchBarProps) {
   const status = searchParams.get('status') ?? ''
   const locationId = searchParams.get('locationId') ?? ''
   const tagId = searchParams.get('tagId') ?? ''
+  const authorId = searchParams.get('authorId') ?? ''
   const sort = searchParams.get('sort') ?? ''
 
-  const hasFilters = q || status || locationId || tagId
+  const hasFilters = q || status || locationId || tagId || authorId
 
   return (
     <div className="flex flex-col gap-3">

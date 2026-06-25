@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { ScanLine, Loader2 } from 'lucide-react'
+import { ScanLine, Loader2, Camera } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -46,6 +46,8 @@ export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
   const router = useRouter()
   const isEdit = !!book
   const didAutoLookup = useRef(false)
+  const scanNext = useRef(false)
+  const formRef = useRef<HTMLFormElement>(null)
 
   const [showScanner, setShowScanner] = useState(false)
   const [lookingUp, setLookingUp] = useState(false)
@@ -181,7 +183,12 @@ export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
 
       const saved = await res.json()
       toast.success(isEdit ? 'Book updated' : 'Book added to library')
-      router.push(`/books/${saved.id}`)
+      if (scanNext.current) {
+        scanNext.current = false
+        router.push('/scan')
+      } else {
+        router.push(`/books/${saved.id}`)
+      }
     } finally {
       setSaving(false)
     }
@@ -193,7 +200,7 @@ export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
         <ISBNScanner onScan={handleScan} onClose={() => setShowScanner(false)} />
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
+      <form ref={formRef} onSubmit={handleSubmit} className="space-y-6 max-w-2xl">
         {/* ISBN */}
         <div className="rounded-lg border p-4 space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">ISBN Lookup</h2>
@@ -328,10 +335,24 @@ export function BookForm({ book, locations, initialIsbn }: BookFormProps) {
           </div>
         </div>
 
-        <div className="flex gap-3 pt-2">
+        <div className="flex flex-wrap gap-3 pt-2">
           <Button type="submit" disabled={saving}>
             {saving ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving…</> : isEdit ? 'Save Changes' : 'Add to Library'}
           </Button>
+          {!isEdit && (
+            <Button
+              type="button"
+              variant="outline"
+              disabled={saving}
+              onClick={() => {
+                scanNext.current = true
+                formRef.current?.requestSubmit()
+              }}
+            >
+              <Camera className="h-4 w-4 mr-2" />
+              Save & Scan Next
+            </Button>
+          )}
           <Button type="button" variant="outline" onClick={() => router.back()}>
             Cancel
           </Button>

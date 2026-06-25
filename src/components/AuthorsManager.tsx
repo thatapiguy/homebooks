@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { Pencil, Trash2, Check, X, Plus, User } from 'lucide-react'
+import Link from 'next/link'
+import { Pencil, Trash2, Check, X, Plus, User, BookOpen } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -120,6 +121,13 @@ export function AuthorsManager({ initialAuthors }: AuthorsManagerProps) {
                   </>
                 ) : (
                   <>
+                    {author._count.books > 0 && (
+                      <Button size="icon" variant="ghost" className="h-7 w-7" asChild title="View books">
+                        <Link href={`/library?authorId=${author.id}`}>
+                          <BookOpen className="h-3.5 w-3.5" />
+                        </Link>
+                      </Button>
+                    )}
                     <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => { setEditingId(author.id); setEditName(author.name) }}>
                       <Pencil className="h-3.5 w-3.5" />
                     </Button>

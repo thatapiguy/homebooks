@@ -4,6 +4,7 @@ import { Plus } from 'lucide-react'
 import { prisma } from '@/lib/prisma'
 import { BookGrid, BookGridSkeleton } from '@/components/BookGrid'
 import { SearchBar } from '@/components/SearchBar'
+import { LibraryActions } from '@/components/LibraryActions'
 import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic'
@@ -14,6 +15,7 @@ interface LibraryPageProps {
     status?: string
     locationId?: string
     tagId?: string
+    authorId?: string
     sort?: string
     order?: string
   }>
@@ -21,7 +23,7 @@ interface LibraryPageProps {
 
 async function BooksSection({ searchParams }: LibraryPageProps) {
   const params = await searchParams
-  const { q = '', status, locationId, tagId, sort = 'createdAt', order = 'desc' } = params
+  const { q = '', status, locationId, tagId, authorId, sort = 'createdAt', order = 'desc' } = params
 
   const where: Record<string, unknown> = {}
   if (q) {
@@ -35,6 +37,7 @@ async function BooksSection({ searchParams }: LibraryPageProps) {
   if (status) where.status = status
   if (locationId) where.locationId = locationId
   if (tagId) where.tags = { some: { tagId } }
+  if (authorId) where.authorId = authorId
 
   const validSorts = ['title', 'year', 'rating', 'createdAt', 'updatedAt']
   const orderDir = order === 'asc' ? 'asc' : 'desc'
@@ -76,12 +79,15 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
     <div className="p-4 md:p-8">
       <div className="mb-6 flex items-center justify-between gap-4">
         <h1 className="text-2xl font-bold">My Library</h1>
-        <Button asChild size="sm" className="hidden md:flex">
-          <Link href="/books/new">
-            <Plus className="h-4 w-4" />
-            Add Book
-          </Link>
-        </Button>
+        <div className="flex items-center gap-2">
+          <LibraryActions />
+          <Button asChild size="sm" className="hidden md:flex">
+            <Link href="/books/new">
+              <Plus className="h-4 w-4" />
+              Add Book
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div className="mb-6">
